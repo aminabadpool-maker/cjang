@@ -17,7 +17,7 @@ static const cjang_tour_stop_t k_default_stops[] = {
 static void print_usage(FILE *out) {
     fprintf(
         out,
-        "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]...\n"
+        "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]... [-q|--quiet]\n"
     );
 }
 
@@ -49,6 +49,7 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     const char *key = NULL;
     const char *candidates[CJANG_MAX_CANDIDATES];
     size_t cand_count = 0u;
+    int quiet = 0;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--raw") == 0) {
@@ -74,6 +75,8 @@ int cjang_bridge_cli_main(int argc, char **argv) {
                 return 2;
             }
             candidates[cand_count++] = argv[++i];
+        } else if (strcmp(argv[i], "--quiet") == 0 || strcmp(argv[i], "-q") == 0) {
+            quiet = 1;
         } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             print_usage(stdout);
             return 0;
@@ -118,7 +121,7 @@ int cjang_bridge_cli_main(int argc, char **argv) {
         &matched
     );
 
-    if (diag[0] != '\0') {
+    if (!quiet && diag[0] != '\0') {
         printf("[DIAG] %s\n", diag);
     }
 

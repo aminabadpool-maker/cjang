@@ -67,6 +67,16 @@ int main(void) {
     fclose(mem_in);
     assert(rc_stdin == 0);
 
+    /* 6. Quiet mode (-q) succeeds and suppresses [DIAG] output */
+    char *argv_quiet[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"bridge_\"}",
+        "--key", "target",
+        "-q"
+    };
+    int rc_quiet = cjang_bridge_cli_main(6, argv_quiet);
+    assert(rc_quiet == 0);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }
