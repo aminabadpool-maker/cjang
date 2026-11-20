@@ -6,3 +6,4 @@ setup_cjang.sh
 apply_param_routing.sh
 apply_query_parsing.sh
 apply_post_headers.sh
+apply_body_helpers.sh

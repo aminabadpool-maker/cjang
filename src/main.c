@@ -1,8 +1,10 @@
 #include "cjang.h"
 #include <stdio.h>
+#include <string.h>
 
 static char g_user_body[256];
 static char g_echo_body[CJANG_MAX_BODY_LEN + 128];
+static char g_submit_body[256];
 
 static int log_middleware(const cjang_request_t *req) {
     printf("[middleware] %s %s\n", req->method, req->path);
@@ -54,6 +56,34 @@ static cjang_response_t echo_post_view(const cjang_request_t *req) {
     return res;
 }
 
+static cjang_response_t submit_view(const cjang_request_t *req) {
+    char name[64];
+    char role[64];
+    const char *ctype = cjang_header_get(req, "Content-Type");
+
+    int ok_name = 0;
+    int ok_role = 0;
+
+    if (ctype && strstr(ctype, "application/json") != NULL) {
+        ok_name = cjang_json_get_str(req, "name", name, sizeof(name));
+        ok_role = cjang_json_get_str(req, "role", role, sizeof(role));
+    } else {
+        ok_name = cjang_form_get(req, "name", name, sizeof(name));
+        ok_role = cjang_form_get(req, "role", role, sizeof(role));
+    }
+
+    snprintf(
+        g_submit_body,
+        sizeof(g_submit_body),
+        "name=%s, role=%s\n",
+        ok_name ? name : "missing",
+        ok_role ? role : "missing"
+    );
+
+    cjang_response_t res = {200, "text/plain; charset=utf-8", g_submit_body};
+    return res;
+}
+
 int main(void) {
     static const cjang_middleware_fn middlewares[] = {
         log_middleware
@@ -63,7 +93,8 @@ int main(void) {
         {"GET", "/", index_view},
         {"GET", "/health/", health_view},
         {"GET", "/users/<id>/", user_detail_view},
-        {"POST", "/echo/", echo_post_view}
+        {"POST", "/echo/", echo_post_view},
+        {"POST", "/submit/", submit_view}
     };
 
     cjang_app_t app = {

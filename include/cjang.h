@@ -76,3 +76,6 @@ cjang_response_t cjang_dispatch(const cjang_app_t *app, cjang_request_t *req);
 int cjang_serve(const cjang_app_t *app, const char *host, int port);
 
 #endif
+
+int cjang_form_get(const cjang_request_t *req, const char *key, char *out, size_t out_sz);
+int cjang_json_get_str(const cjang_request_t *req, const char *key, char *out, size_t out_sz);
