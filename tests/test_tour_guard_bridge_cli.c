@@ -77,6 +77,17 @@ int main(void) {
     int rc_quiet = cjang_bridge_cli_main(6, argv_quiet);
     assert(rc_quiet == 0);
 
+    /* 7. Count-only mode (-q -c) outputs only the matched count */
+    char *argv_count[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"guard_\"}",
+        "--key", "target",
+        "-q",
+        "-c"
+    };
+    int rc_count = cjang_bridge_cli_main(7, argv_count);
+    assert(rc_count == 0);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }
