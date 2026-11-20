@@ -45,6 +45,28 @@ int main(void) {
     int rc_fail = cjang_bridge_cli_main(7, argv_fail);
     assert(rc_fail == 3);
 
+    /* 5. Read payload from stdin via --raw - using a temporary stream */
+    const char *sample_stdin = "{\"target\":\"tour_\"}";
+    FILE *mem_in = tmpfile();
+    assert(mem_in != NULL);
+    size_t written = fwrite(sample_stdin, 1u, strlen(sample_stdin), mem_in);
+    assert(written == strlen(sample_stdin));
+    rewind(mem_in);
+
+    FILE *orig_stdin = stdin;
+    stdin = mem_in;
+
+    char *argv_stdin[] = {
+        "cjang_bridge_cli",
+        "--raw", "-",
+        "--key", "target"
+    };
+    int rc_stdin = cjang_bridge_cli_main(5, argv_stdin);
+
+    stdin = orig_stdin;
+    fclose(mem_in);
+    assert(rc_stdin == 0);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }

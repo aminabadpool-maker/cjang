@@ -4,6 +4,7 @@
 #include <string.h>
 
 #define CJANG_MAX_CANDIDATES 16u
+#define CJANG_STDIN_BUF_CAP 2048u
 
 static const cjang_tour_stop_t k_default_stops[] = {
     {"guard_kv",     "Guard KV Extractor",   "src/cjang_guard.c",  "Extract key/value safely"},
@@ -16,8 +17,31 @@ static const cjang_tour_stop_t k_default_stops[] = {
 static void print_usage(FILE *out) {
     fprintf(
         out,
-        "usage: cjang_bridge_cli --raw <payload> --key <name> [--prefix <cand>]...\n"
+        "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]...\n"
     );
+}
+
+static int read_stdin_bounded(char *out, size_t cap) {
+    if (out == NULL || cap == 0u) {
+        return -1;
+    }
+    out[0] = '\0';
+
+    size_t used = 0u;
+    while (used + 1u < cap) {
+        size_t n = fread(out + used, 1u, (cap - 1u) - used, stdin);
+        if (n == 0u) {
+            break;
+        }
+        used += n;
+    }
+    out[used] = '\0';
+
+    if (ferror(stdin)) {
+        out[0] = '\0';
+        return -1;
+    }
+    return 0;
 }
 
 int cjang_bridge_cli_main(int argc, char **argv) {
@@ -63,6 +87,17 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     if (raw == NULL || key == NULL || key[0] == '\0') {
         print_usage(stderr);
         return 2;
+    }
+
+    char stdin_buf[CJANG_STDIN_BUF_CAP];
+    stdin_buf[0] = '\0';
+
+    if (strcmp(raw, "-") == 0) {
+        if (read_stdin_bounded(stdin_buf, sizeof(stdin_buf)) != 0) {
+            fprintf(stderr, "[ERR] failed reading payload from stdin\n");
+            return 2;
+        }
+        raw = stdin_buf;
     }
 
     char diag[256];
