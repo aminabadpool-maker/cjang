@@ -112,6 +112,30 @@ int main(void) {
     };
     assert(cjang_bridge_cli_main(7, argv_bad_fmt) == 2);
 
+    /* 11. Strict mode (-s) rejects oversized stdin exceeding static buffer */
+    FILE *big_in = tmpfile();
+    assert(big_in != NULL);
+    const char *prefix_part = "{\"target\":\"guard_\",\"pad\":\"";
+    assert(fwrite(prefix_part, 1u, strlen(prefix_part), big_in) == strlen(prefix_part));
+    for (size_t i = 0u; i < 2100u; i++) {
+        assert(fputc('x', big_in) == 'x');
+    }
+    const char *suffix_part = "\"}";
+    assert(fwrite(suffix_part, 1u, strlen(suffix_part), big_in) == strlen(suffix_part));
+    rewind(big_in);
+
+    stdin = big_in;
+    char *argv_strict[] = {
+        "cjang_bridge_cli",
+        "--raw", "-",
+        "--key", "target",
+        "-s"
+    };
+    int rc_strict = cjang_bridge_cli_main(6, argv_strict);
+    stdin = orig_stdin;
+    fclose(big_in);
+    assert(rc_strict == 2);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }

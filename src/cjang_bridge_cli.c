@@ -24,7 +24,7 @@ static void print_usage(FILE *out) {
     fprintf(
         out,
         "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]... "
-        "[-q|--quiet] [-c|--count-only] [-f|--first] [-o|--format raw|compact|kv]\n"
+        "[-q|--quiet] [-c|--count-only] [-f|--first] [-o|--format raw|compact|kv] [-s|--strict]\n"
     );
 }
 
@@ -69,6 +69,7 @@ static const char *extract_first_stop_id(const char *report, char *buf, size_t c
     return buf;
 }
 
+/* Returns 0 on normal read, 1 if buffer reached cap (possible truncation), -1 on error. */
 static int read_stdin_bounded(char *out, size_t cap) {
     if (out == NULL || cap == 0u) {
         return -1;
@@ -89,6 +90,9 @@ static int read_stdin_bounded(char *out, size_t cap) {
         out[0] = '\0';
         return -1;
     }
+    if (used + 1u >= cap) {
+        return 1;
+    }
     return 0;
 }
 
@@ -100,6 +104,7 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     int quiet = 0;
     int count_only = 0;
     int first_only = 0;
+    int strict_mode = 0;
     cjang_out_fmt_t fmt = CJANG_FMT_RAW;
 
     for (int i = 1; i < argc; i++) {
@@ -132,6 +137,8 @@ int cjang_bridge_cli_main(int argc, char **argv) {
             count_only = 1;
         } else if (strcmp(argv[i], "--first") == 0 || strcmp(argv[i], "-f") == 0) {
             first_only = 1;
+        } else if (strcmp(argv[i], "--strict") == 0 || strcmp(argv[i], "-s") == 0) {
+            strict_mode = 1;
         } else if (strcmp(argv[i], "--format") == 0 || strcmp(argv[i], "-o") == 0) {
             if (i + 1 >= argc || parse_format(argv[++i], &fmt) != 0) {
                 fprintf(stderr, "[ERR] invalid format (expected raw|compact|kv)\n");
@@ -156,9 +163,21 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     stdin_buf[0] = '\0';
 
     if (strcmp(raw, "-") == 0) {
-        if (read_stdin_bounded(stdin_buf, sizeof(stdin_buf)) != 0) {
+        int r_status = read_stdin_bounded(stdin_buf, sizeof(stdin_buf));
+        if (r_status < 0) {
             fprintf(stderr, "[ERR] failed reading payload from stdin\n");
             return 2;
+        }
+        if (r_status > 0) {
+            if (strict_mode) {
+                fprintf(stderr, "[ERR] stdin payload exceeded cap (%u bytes) in strict mode\n",
+                        (unsigned)(sizeof(stdin_buf) - 1u));
+                return 2;
+            }
+            if (!quiet) {
+                fprintf(stderr, "[WARN] stdin payload truncated at %u bytes\n",
+                        (unsigned)(sizeof(stdin_buf) - 1u));
+            }
         }
         raw = stdin_buf;
     }
