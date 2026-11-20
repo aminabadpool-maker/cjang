@@ -13,8 +13,7 @@ int main(void) {
         "--raw", "{\"target\":\"guard_\"}",
         "--key", "target"
     };
-    int rc_ok = cjang_bridge_cli_main(5, argv_ok);
-    assert(rc_ok == 0);
+    assert(cjang_bridge_cli_main(5, argv_ok) == 0);
 
     /* 2. Multi-prefix fallback selects matching candidate */
     char *argv_cand[] = {
@@ -24,16 +23,14 @@ int main(void) {
         "--prefix", "none_",
         "--prefix", "bridge_"
     };
-    int rc_cand = cjang_bridge_cli_main(9, argv_cand);
-    assert(rc_cand == 0);
+    assert(cjang_bridge_cli_main(9, argv_cand) == 0);
 
     /* 3. Missing required --key returns exit code 2 */
     char *argv_bad[] = {
         "cjang_bridge_cli",
         "--raw", "{\"target\":\"guard_\"}"
     };
-    int rc_bad = cjang_bridge_cli_main(3, argv_bad);
-    assert(rc_bad == 2);
+    assert(cjang_bridge_cli_main(3, argv_bad) == 2);
 
     /* 4. Unmatched prefixes return exit code 3 */
     char *argv_fail[] = {
@@ -42,8 +39,7 @@ int main(void) {
         "--key", "target",
         "--prefix", "nope_"
     };
-    int rc_fail = cjang_bridge_cli_main(7, argv_fail);
-    assert(rc_fail == 3);
+    assert(cjang_bridge_cli_main(7, argv_fail) == 3);
 
     /* 5. Read payload from stdin via --raw - using a temporary stream */
     const char *sample_stdin = "{\"target\":\"tour_\"}";
@@ -74,8 +70,7 @@ int main(void) {
         "--key", "target",
         "-q"
     };
-    int rc_quiet = cjang_bridge_cli_main(6, argv_quiet);
-    assert(rc_quiet == 0);
+    assert(cjang_bridge_cli_main(6, argv_quiet) == 0);
 
     /* 7. Count-only mode (-q -c) outputs only the matched count */
     char *argv_count[] = {
@@ -85,8 +80,37 @@ int main(void) {
         "-q",
         "-c"
     };
-    int rc_count = cjang_bridge_cli_main(7, argv_count);
-    assert(rc_count == 0);
+    assert(cjang_bridge_cli_main(7, argv_count) == 0);
+
+    /* 8. First-only mode (-q -f) returns top stop */
+    char *argv_first[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"guard_\"}",
+        "--key", "target",
+        "-q",
+        "-f"
+    };
+    assert(cjang_bridge_cli_main(7, argv_first) == 0);
+
+    /* 9. KV format (-q -o kv -f) emits clean key-value line */
+    char *argv_kv[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"tour_\"}",
+        "--key", "target",
+        "-q",
+        "-o", "kv",
+        "-f"
+    };
+    assert(cjang_bridge_cli_main(9, argv_kv) == 0);
+
+    /* 10. Invalid format returns exit code 2 */
+    char *argv_bad_fmt[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"guard_\"}",
+        "--key", "target",
+        "-o", "xml"
+    };
+    assert(cjang_bridge_cli_main(7, argv_bad_fmt) == 2);
 
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
