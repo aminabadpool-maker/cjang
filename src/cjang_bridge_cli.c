@@ -24,7 +24,8 @@ static void print_usage(FILE *out) {
     fprintf(
         out,
         "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]... "
-        "[-q|--quiet] [-c|--count-only] [-f|--first] [-o|--format raw|compact|kv] [-s|--strict]\n"
+        "[-q|--quiet] [-c|--count-only] [-f|--first] [-o|--format raw|compact|kv] "
+        "[-s|--strict] [-n|--no-fallback]\n"
     );
 }
 
@@ -105,6 +106,7 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     int count_only = 0;
     int first_only = 0;
     int strict_mode = 0;
+    int no_fallback = 0;
     cjang_out_fmt_t fmt = CJANG_FMT_RAW;
 
     for (int i = 1; i < argc; i++) {
@@ -139,6 +141,8 @@ int cjang_bridge_cli_main(int argc, char **argv) {
             first_only = 1;
         } else if (strcmp(argv[i], "--strict") == 0 || strcmp(argv[i], "-s") == 0) {
             strict_mode = 1;
+        } else if (strcmp(argv[i], "--no-fallback") == 0 || strcmp(argv[i], "-n") == 0) {
+            no_fallback = 1;
         } else if (strcmp(argv[i], "--format") == 0 || strcmp(argv[i], "-o") == 0) {
             if (i + 1 >= argc || parse_format(argv[++i], &fmt) != 0) {
                 fprintf(stderr, "[ERR] invalid format (expected raw|compact|kv)\n");
@@ -182,6 +186,9 @@ int cjang_bridge_cli_main(int argc, char **argv) {
         raw = stdin_buf;
     }
 
+    const char **active_candidates = no_fallback ? NULL : candidates;
+    size_t active_cand_count = no_fallback ? 0u : cand_count;
+
     char diag[256];
     char report[1024];
     size_t matched = 0u;
@@ -191,8 +198,8 @@ int cjang_bridge_cli_main(int argc, char **argv) {
         key,
         k_default_stops,
         sizeof(k_default_stops) / sizeof(k_default_stops[0]),
-        candidates,
-        cand_count,
+        active_candidates,
+        active_cand_count,
         diag,
         sizeof(diag),
         report,

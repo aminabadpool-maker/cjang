@@ -136,6 +136,16 @@ int main(void) {
     fclose(big_in);
     assert(rc_strict == 2);
 
+    /* 12. No-fallback mode (-n) ignores --prefix candidates when key value misses */
+    char *argv_no_fb[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"missing_stop\"}",
+        "--key", "target",
+        "--prefix", "bridge_",
+        "-n"
+    };
+    assert(cjang_bridge_cli_main(8, argv_no_fb) == 3);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }
