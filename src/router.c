@@ -1,11 +1,78 @@
 #include "cjang.h"
+#include <stdio.h>
 #include <string.h>
 
-cjang_response_t cjang_dispatch(const cjang_app_t *app, const cjang_request_t *req) {
+const char *cjang_param_get(const cjang_request_t *req, const char *key) {
+    if (!req || !key) return NULL;
+    for (size_t i = 0; i < req->param_count; ++i) {
+        if (strcmp(req->params[i].key, key) == 0) {
+            return req->params[i].value;
+        }
+    }
+    return NULL;
+}
+
+static int store_param(cjang_request_t *req, const char *name, size_t name_len,
+                       const char *val, size_t val_len) {
+    if (req->param_count >= CJANG_MAX_PARAMS) return 0;
+    if (name_len == 0 || val_len == 0) return 0;
+    if (name_len >= CJANG_PARAM_KEY_LEN || val_len >= CJANG_PARAM_VAL_LEN) return 0;
+
+    cjang_param_t *p = &req->params[req->param_count];
+    memcpy(p->key, name, name_len);
+    p->key[name_len] = '\0';
+    memcpy(p->value, val, val_len);
+    p->value[val_len] = '\0';
+    req->param_count++;
+    return 1;
+}
+
+static int match_pattern(const char *pattern, const char *path, cjang_request_t *req) {
+    req->param_count = 0;
+    const char *pp = pattern;
+    const char *rp = path;
+
+    while (*pp && *rp) {
+        if (*pp == '<') {
+            const char *close = strchr(pp + 1, '>');
+            if (!close) return 0;
+            size_t name_len = (size_t)(close - (pp + 1));
+
+            const char *r_end = strchr(rp, '/');
+            size_t val_len = r_end ? (size_t)(r_end - rp) : strlen(rp);
+
+            if (!store_param(req, pp + 1, name_len, rp, val_len)) {
+                req->param_count = 0;
+                return 0;
+            }
+
+            pp = close + 1;
+            rp += val_len;
+        } else {
+            if (*pp != *rp) {
+                req->param_count = 0;
+                return 0;
+            }
+            pp++;
+            rp++;
+        }
+    }
+
+    if (*pp == '\0' && *rp == '\0') {
+        return 1;
+    }
+
+    req->param_count = 0;
+    return 0;
+}
+
+cjang_response_t cjang_dispatch(const cjang_app_t *app, cjang_request_t *req) {
     if (!app || !req || !req->method || !req->path) {
         cjang_response_t bad = {400, "text/plain; charset=utf-8", "Bad Request\n"};
         return bad;
     }
+
+    req->param_count = 0;
 
     for (size_t i = 0; i < app->middleware_count; ++i) {
         if (app->middlewares[i] && app->middlewares[i](req) != 0) {
@@ -16,7 +83,7 @@ cjang_response_t cjang_dispatch(const cjang_app_t *app, const cjang_request_t *r
 
     for (size_t i = 0; i < app->route_count; ++i) {
         const cjang_route_t *r = &app->routes[i];
-        if (strcmp(r->method, req->method) == 0 && strcmp(r->path, req->path) == 0) {
+        if (strcmp(r->method, req->method) == 0 && match_pattern(r->path, req->path, req)) {
             return r->view(req);
         }
     }

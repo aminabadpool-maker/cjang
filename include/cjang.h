@@ -3,9 +3,20 @@
 
 #include <stddef.h>
 
+#define CJANG_MAX_PARAMS 8
+#define CJANG_PARAM_KEY_LEN 32
+#define CJANG_PARAM_VAL_LEN 128
+
+typedef struct {
+    char key[CJANG_PARAM_KEY_LEN];
+    char value[CJANG_PARAM_VAL_LEN];
+} cjang_param_t;
+
 typedef struct {
     const char *method;
     const char *path;
+    cjang_param_t params[CJANG_MAX_PARAMS];
+    size_t param_count;
 } cjang_request_t;
 
 typedef struct {
@@ -31,7 +42,8 @@ typedef struct {
     size_t middleware_count;
 } cjang_app_t;
 
-cjang_response_t cjang_dispatch(const cjang_app_t *app, const cjang_request_t *req);
+const char *cjang_param_get(const cjang_request_t *req, const char *key);
+cjang_response_t cjang_dispatch(const cjang_app_t *app, cjang_request_t *req);
 int cjang_serve(const cjang_app_t *app, const char *host, int port);
 
 #endif

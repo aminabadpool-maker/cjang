@@ -84,7 +84,10 @@ int cjang_serve(const cjang_app_t *app, const char *host, int port) {
             char path[256];
             parse_first_line(buf, method, sizeof(method), path, sizeof(path));
 
-            cjang_request_t req = {method, path};
+            cjang_request_t req;
+            memset(&req, 0, sizeof(req));
+            req.method = method;
+            req.path = path;
             cjang_response_t res = cjang_dispatch(app, &req);
 
             char header[512];

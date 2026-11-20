@@ -2,3 +2,5 @@ build/
 *.o
 *.out
 cjangd
+setup_cjang.sh
+apply_param_routing.sh

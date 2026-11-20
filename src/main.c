@@ -1,6 +1,8 @@
 #include "cjang.h"
 #include <stdio.h>
 
+static char g_user_body[256];
+
 static int log_middleware(const cjang_request_t *req) {
     printf("[middleware] %s %s\n", req->method, req->path);
     fflush(stdout);
@@ -19,6 +21,17 @@ static cjang_response_t health_view(const cjang_request_t *req) {
     return res;
 }
 
+static cjang_response_t user_detail_view(const cjang_request_t *req) {
+    const char *id = cjang_param_get(req, "id");
+    if (!id) {
+        cjang_response_t bad = {400, "text/plain; charset=utf-8", "Missing id param\n"};
+        return bad;
+    }
+    snprintf(g_user_body, sizeof(g_user_body), "User ID: %s\n", id);
+    cjang_response_t res = {200, "text/plain; charset=utf-8", g_user_body};
+    return res;
+}
+
 int main(void) {
     static const cjang_middleware_fn middlewares[] = {
         log_middleware
@@ -26,7 +39,8 @@ int main(void) {
 
     static const cjang_route_t routes[] = {
         {"GET", "/", index_view},
-        {"GET", "/health/", health_view}
+        {"GET", "/health/", health_view},
+        {"GET", "/users/<id>/", user_detail_view}
     };
 
     cjang_app_t app = {
