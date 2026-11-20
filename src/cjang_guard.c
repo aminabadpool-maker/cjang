@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "cjang_guard.h"
 
 #include <string.h>
@@ -156,4 +158,32 @@ cjang_guard_err_t cjang_guard_extract_kv(
     }
 
     return CJANG_GUARD_ERR_NOT_FOUND;
+}
+
+cjang_guard_err_t cjang_guard_format_diag(
+    const char *key,
+    cjang_guard_err_t err,
+    char *out,
+    size_t cap
+) {
+    if (!key || key[0] == '\0' || !out || cap == 0) {
+        if (out && cap > 0) {
+            out[0] = '\0';
+        }
+        return CJANG_GUARD_ERR_NULL;
+    }
+
+    out[0] = '\0';
+    const char *reason = cjang_guard_strerror(err);
+    int n = snprintf(out, cap, "key=%s status=%d reason=%s\n", key, (int)err, reason);
+    if (n < 0) {
+        out[0] = '\0';
+        return CJANG_GUARD_ERR_BOUNDS;
+    }
+    if ((size_t)n >= cap) {
+        out[0] = '\0';
+        return CJANG_GUARD_ERR_TOO_LONG;
+    }
+
+    return CJANG_GUARD_OK;
 }

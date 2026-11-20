@@ -33,4 +33,11 @@ int cjang_tour_render_all(
     size_t cap
 );
 
+int cjang_tour_format_index(
+    const cjang_tour_stop_t *stops,
+    size_t count,
+    char *out,
+    size_t cap
+);
+
 #endif /* CJANG_TOUR_H */

@@ -34,4 +34,11 @@ cjang_guard_err_t cjang_guard_extract_kv(
     size_t out_cap
 );
 
+cjang_guard_err_t cjang_guard_format_diag(
+    const char *key,
+    cjang_guard_err_t err,
+    char *out,
+    size_t cap
+);
+
 #endif /* CJANG_GUARD_H */

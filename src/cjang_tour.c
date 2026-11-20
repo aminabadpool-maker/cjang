@@ -97,3 +97,43 @@ int cjang_tour_render_all(
 
     return CJANG_TOUR_OK;
 }
+
+int cjang_tour_format_index(
+    const cjang_tour_stop_t *stops,
+    size_t count,
+    char *out,
+    size_t cap
+) {
+    if (!stops || count == 0 || !out || cap == 0) {
+        if (out && cap > 0) {
+            out[0] = '\0';
+        }
+        return CJANG_TOUR_ERR_ARG;
+    }
+
+    out[0] = '\0';
+    size_t used = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        const char *k = stops[i].key ? stops[i].key : "(null)";
+        const char *t = stops[i].title ? stops[i].title : "(untitled)";
+        char line[256];
+
+        int n = snprintf(line, sizeof(line), "  - %-10s : %s\n", k, t);
+        if (n < 0) {
+            out[0] = '\0';
+            return CJANG_TOUR_ERR_ARG;
+        }
+        if ((size_t)n >= sizeof(line) || used + (size_t)n + 1 > cap) {
+            out[0] = '\0';
+            return CJANG_TOUR_ERR_NOSPACE;
+        }
+
+        size_t llen = (size_t)n;
+        memcpy(out + used, line, llen);
+        used += llen;
+        out[used] = '\0';
+    }
+
+    return CJANG_TOUR_OK;
+}
