@@ -34,16 +34,21 @@ for src in "${test_files[@]}"; do
 
     echo "=== [REL -O3] $base ==="
     extra_srcs=()
+    extra_defs=()
     if [ -f "src/cjang_bridge.c" ]; then
         extra_srcs+=(src/cjang_bridge.c)
     fi
+    if [ -f "src/cjang_bridge_cli.c" ] && grep -q 'cjang_bridge_cli_main' "$src"; then
+        extra_srcs+=(src/cjang_bridge_cli.c)
+        extra_defs+=(-DCJANG_BRIDGE_CLI_NO_MAIN)
+    fi
 
-    "$CC" "${REL_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
+    "$CC" "${REL_FLAGS[@]}" "${extra_defs[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
         "${extra_libs[@]}" -o "$rel_bin"
     "$rel_bin"
 
     echo "=== [SAN ASan+UBSan] $base ==="
-    "$CC" "${SAN_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
+    "$CC" "${SAN_FLAGS[@]}" "${extra_defs[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
         "${extra_libs[@]}" -o "$san_bin"
     "$san_bin"
 
