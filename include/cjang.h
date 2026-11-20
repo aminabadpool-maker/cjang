@@ -79,3 +79,22 @@ int cjang_serve(const cjang_app_t *app, const char *host, int port);
 
 int cjang_form_get(const cjang_request_t *req, const char *key, char *out, size_t out_sz);
 int cjang_json_get_str(const cjang_request_t *req, const char *key, char *out, size_t out_sz);
+
+#define CJANG_MAX_CTX_VARS 16
+#define CJANG_CTX_KEY_LEN 32
+#define CJANG_CTX_VAL_LEN 128
+
+typedef struct {
+    char key[CJANG_CTX_KEY_LEN];
+    char value[CJANG_CTX_VAL_LEN];
+} cjang_ctx_var_t;
+
+typedef struct {
+    cjang_ctx_var_t vars[CJANG_MAX_CTX_VARS];
+    size_t count;
+} cjang_ctx_t;
+
+void cjang_ctx_init(cjang_ctx_t *ctx);
+int cjang_ctx_set(cjang_ctx_t *ctx, const char *key, const char *value);
+const char *cjang_ctx_get(const cjang_ctx_t *ctx, const char *key);
+int cjang_render_template(const char *tmpl, const cjang_ctx_t *ctx, char *out, size_t out_sz);

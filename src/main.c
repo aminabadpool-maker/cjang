@@ -5,6 +5,7 @@
 static char g_user_body[256];
 static char g_echo_body[CJANG_MAX_BODY_LEN + 128];
 static char g_submit_body[256];
+static char g_greet_body[512];
 
 static int log_middleware(const cjang_request_t *req) {
     printf("[middleware] %s %s\n", req->method, req->path);
@@ -84,6 +85,22 @@ static cjang_response_t submit_view(const cjang_request_t *req) {
     return res;
 }
 
+static cjang_response_t greet_view(const cjang_request_t *req) {
+    const char *name = cjang_param_get(req, "name");
+    const char *lang = cjang_query_get(req, "lang");
+
+    cjang_ctx_t ctx;
+    cjang_ctx_init(&ctx);
+    cjang_ctx_set(&ctx, "name", name ? name : "guest");
+    cjang_ctx_set(&ctx, "lang", lang ? lang : "C11");
+
+    static const char tmpl[] = "Hello, {{name}}! Running on {{lang}}.\n";
+    cjang_render_template(tmpl, &ctx, g_greet_body, sizeof(g_greet_body));
+
+    cjang_response_t res = {200, "text/plain; charset=utf-8", g_greet_body};
+    return res;
+}
+
 int main(void) {
     static const cjang_middleware_fn middlewares[] = {
         log_middleware
@@ -93,6 +110,7 @@ int main(void) {
         {"GET", "/", index_view},
         {"GET", "/health/", health_view},
         {"GET", "/users/<id>/", user_detail_view},
+        {"GET", "/greet/<name>/", greet_view},
         {"POST", "/echo/", echo_post_view},
         {"POST", "/submit/", submit_view}
     };
