@@ -146,6 +146,16 @@ int main(void) {
     };
     assert(cjang_bridge_cli_main(8, argv_no_fb) == 3);
 
+    /* 13. Summary-only mode (-q -S) prints only the [summary] line */
+    char *argv_sum[] = {
+        "cjang_bridge_cli",
+        "--raw", "{\"target\":\"tour_\"}",
+        "--key", "target",
+        "-q",
+        "-S"
+    };
+    assert(cjang_bridge_cli_main(7, argv_sum) == 0);
+
     printf("[OK] cjang_bridge_cli integration tests passed cleanly.\n");
     return 0;
 }

@@ -24,8 +24,8 @@ static void print_usage(FILE *out) {
     fprintf(
         out,
         "usage: cjang_bridge_cli --raw <payload|-> --key <name> [--prefix <cand>]... "
-        "[-q|--quiet] [-c|--count-only] [-f|--first] [-o|--format raw|compact|kv] "
-        "[-s|--strict] [-n|--no-fallback]\n"
+        "[-q|--quiet] [-c|--count-only] [-f|--first] [-S|--summary] "
+        "[-o|--format raw|compact|kv] [-s|--strict] [-n|--no-fallback]\n"
     );
 }
 
@@ -70,6 +70,27 @@ static const char *extract_first_stop_id(const char *report, char *buf, size_t c
     return buf;
 }
 
+static const char *extract_summary_line(const char *report, char *buf, size_t cap) {
+    if (report == NULL || buf == NULL || cap == 0u) {
+        return "";
+    }
+    buf[0] = '\0';
+
+    const char *line = strstr(report, "[summary] ");
+    if (line == NULL) {
+        return "";
+    }
+
+    const char *nl = strchr(line, '\n');
+    size_t len = (nl != NULL) ? (size_t)(nl - line) : strlen(line);
+    if (len >= cap) {
+        len = cap - 1u;
+    }
+    memcpy(buf, line, len);
+    buf[len] = '\0';
+    return buf;
+}
+
 /* Returns 0 on normal read, 1 if buffer reached cap (possible truncation), -1 on error. */
 static int read_stdin_bounded(char *out, size_t cap) {
     if (out == NULL || cap == 0u) {
@@ -105,6 +126,7 @@ int cjang_bridge_cli_main(int argc, char **argv) {
     int quiet = 0;
     int count_only = 0;
     int first_only = 0;
+    int summary_only = 0;
     int strict_mode = 0;
     int no_fallback = 0;
     cjang_out_fmt_t fmt = CJANG_FMT_RAW;
@@ -139,6 +161,8 @@ int cjang_bridge_cli_main(int argc, char **argv) {
             count_only = 1;
         } else if (strcmp(argv[i], "--first") == 0 || strcmp(argv[i], "-f") == 0) {
             first_only = 1;
+        } else if (strcmp(argv[i], "--summary") == 0 || strcmp(argv[i], "-S") == 0) {
+            summary_only = 1;
         } else if (strcmp(argv[i], "--strict") == 0 || strcmp(argv[i], "-s") == 0) {
             strict_mode = 1;
         } else if (strcmp(argv[i], "--no-fallback") == 0 || strcmp(argv[i], "-n") == 0) {
@@ -213,10 +237,14 @@ int cjang_bridge_cli_main(int argc, char **argv) {
 
     if (rc == CJANG_BRIDGE_OK) {
         char first_stop[128];
+        char summary_line[256];
         extract_first_stop_id(report, first_stop, sizeof(first_stop));
+        extract_summary_line(report, summary_line, sizeof(summary_line));
 
         if (count_only) {
             printf("%zu\n", matched);
+        } else if (summary_only) {
+            printf("%s\n", summary_line);
         } else if (fmt == CJANG_FMT_COMPACT) {
             if (first_only) {
                 printf("matched=%zu first=%s\n", matched, first_stop);
