@@ -33,12 +33,17 @@ for src in "${test_files[@]}"; do
     san_bin="$TMP_BIN/${base}_san"
 
     echo "=== [REL -O3] $base ==="
-    "$CC" "${REL_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "$src" \
+    extra_srcs=()
+    if [ -f "src/cjang_bridge.c" ]; then
+        extra_srcs+=(src/cjang_bridge.c)
+    fi
+
+    "$CC" "${REL_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
         "${extra_libs[@]}" -o "$rel_bin"
     "$rel_bin"
 
     echo "=== [SAN ASan+UBSan] $base ==="
-    "$CC" "${SAN_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "$src" \
+    "$CC" "${SAN_FLAGS[@]}" src/cjang_tour.c src/cjang_guard.c "${extra_srcs[@]}" "$src" \
         "${extra_libs[@]}" -o "$san_bin"
     "$san_bin"
 
