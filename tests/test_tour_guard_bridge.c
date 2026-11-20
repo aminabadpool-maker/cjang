@@ -92,6 +92,46 @@ int main(void) {
     assert(diag[0] == '\0');
     assert(report[0] == '\0');
 
+    /* 5. Multi-prefix skips non-matching extracted value and picks first matching candidate */
+    const char *candidates[] = {"unknown_", "bridge_", "tour_"};
+    matched = 0u;
+    cjang_bridge_err_t rc5 = cjang_bridge_inspect_multi_prefix(
+        "{\"target\":\"unmatched_val\"}",
+        "target",
+        k_bridge_stops,
+        sizeof(k_bridge_stops) / sizeof(k_bridge_stops[0]),
+        candidates,
+        3u,
+        diag,
+        sizeof(diag),
+        report,
+        sizeof(report),
+        &matched
+    );
+    assert(rc5 == CJANG_BRIDGE_OK);
+    assert(matched == 1u);
+    assert(strstr(report, "bridge_route") != NULL);
+
+    /* 6. Multi-prefix when no candidate matches returns ERR_TOUR and clears report */
+    const char *no_match[] = {"nope_a_", "nope_b_"};
+    matched = 55u;
+    cjang_bridge_err_t rc6 = cjang_bridge_inspect_multi_prefix(
+        "{\"target\":\"unmatched_val\"}",
+        "target",
+        k_bridge_stops,
+        sizeof(k_bridge_stops) / sizeof(k_bridge_stops[0]),
+        no_match,
+        2u,
+        diag,
+        sizeof(diag),
+        report,
+        sizeof(report),
+        &matched
+    );
+    assert(rc6 == CJANG_BRIDGE_ERR_TOUR);
+    assert(matched == 0u);
+    assert(report[0] == '\0');
+
     printf("[OK] cjang_bridge integration tests passed cleanly.\n");
     return 0;
 }

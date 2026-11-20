@@ -36,6 +36,26 @@ cjang_bridge_err_t cjang_bridge_inspect_and_report(
     size_t *matched_out
 );
 
+/*
+ * Inspects `raw` for `key` via cjang_guard_trace_kv and tries candidate
+ * prefixes in order: extracted value (if guard succeeded and non-empty), then
+ * each non-empty entry in `candidates[0 .. candidate_count - 1]`. Renders the
+ * report for the first candidate prefix that matches one or more stops.
+ */
+cjang_bridge_err_t cjang_bridge_inspect_multi_prefix(
+    const char *raw,
+    const char *key,
+    const cjang_tour_stop_t *stops,
+    size_t stop_count,
+    const char *const *candidates,
+    size_t candidate_count,
+    char *diag_out,
+    size_t diag_cap,
+    char *report_out,
+    size_t report_cap,
+    size_t *matched_out
+);
+
 #ifdef __cplusplus
 }
 #endif
