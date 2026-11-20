@@ -137,3 +137,53 @@ int cjang_tour_format_index(
 
     return CJANG_TOUR_OK;
 }
+
+int cjang_tour_render_prefix(
+    const cjang_tour_stop_t *stops,
+    size_t count,
+    const char *prefix,
+    char *out,
+    size_t cap
+) {
+    if (!stops || count == 0 || !prefix || prefix[0] == '\0' || !out || cap == 0) {
+        if (out && cap > 0) {
+            out[0] = '\0';
+        }
+        return CJANG_TOUR_ERR_ARG;
+    }
+
+    out[0] = '\0';
+    size_t used = 0;
+    size_t plen = strlen(prefix);
+    int matched = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        const char *k = stops[i].key;
+        if (!k || strncmp(k, prefix, plen) != 0) {
+            continue;
+        }
+        matched = 1;
+        const char *t = stops[i].title ? stops[i].title : "(untitled)";
+        char line[256];
+        int n = snprintf(line, sizeof(line), "  * %s -> %s\n", k, t);
+        if (n < 0) {
+            out[0] = '\0';
+            return CJANG_TOUR_ERR_ARG;
+        }
+        if ((size_t)n >= sizeof(line) || used + (size_t)n + 1 > cap) {
+            out[0] = '\0';
+            return CJANG_TOUR_ERR_NOSPACE;
+        }
+        size_t llen = (size_t)n;
+        memcpy(out + used, line, llen);
+        used += llen;
+        out[used] = '\0';
+    }
+
+    if (!matched) {
+        out[0] = '\0';
+        return CJANG_TOUR_ERR_ARG;
+    }
+
+    return CJANG_TOUR_OK;
+}

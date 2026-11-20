@@ -41,4 +41,12 @@ cjang_guard_err_t cjang_guard_format_diag(
     size_t cap
 );
 
+cjang_guard_err_t cjang_guard_format_entry(
+    const char *key,
+    const char *val,
+    cjang_guard_err_t err,
+    char *out,
+    size_t cap
+);
+
 #endif /* CJANG_GUARD_H */

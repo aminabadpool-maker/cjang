@@ -40,4 +40,12 @@ int cjang_tour_format_index(
     size_t cap
 );
 
+int cjang_tour_render_prefix(
+    const cjang_tour_stop_t *stops,
+    size_t count,
+    const char *prefix,
+    char *out,
+    size_t cap
+);
+
 #endif /* CJANG_TOUR_H */
