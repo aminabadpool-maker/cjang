@@ -228,3 +228,45 @@ cjang_guard_err_t cjang_guard_format_entry(
 
     return CJANG_GUARD_OK;
 }
+
+cjang_guard_err_t cjang_guard_trace_kv(
+    const char *raw,
+    const char *key,
+    char *val_out,
+    size_t val_cap,
+    char *diag_out,
+    size_t diag_cap
+) {
+    if (!diag_out || diag_cap == 0) {
+        return CJANG_GUARD_ERR_NULL;
+    }
+    diag_out[0] = '\0';
+
+    size_t raw_len = raw ? strlen(raw) : 0;
+    cjang_guard_err_t rc = cjang_guard_extract_kv(raw, raw_len, key, val_out, val_cap);
+    const char *kshow = (key && key[0] != '\0') ? key : "<missing_key>";
+    size_t klen = (key && key[0] != '\0') ? strlen(key) : 0;
+    size_t vlen = (rc == CJANG_GUARD_OK && val_out) ? strlen(val_out) : 0;
+    const char *reason = cjang_guard_strerror(rc);
+
+    int n = snprintf(
+        diag_out,
+        diag_cap,
+        "key=%s klen=%zu vlen=%zu status=%d reason=%s\n",
+        kshow,
+        klen,
+        vlen,
+        (int)rc,
+        reason
+    );
+    if (n < 0) {
+        diag_out[0] = '\0';
+        return CJANG_GUARD_ERR_BOUNDS;
+    }
+    if ((size_t)n >= diag_cap) {
+        diag_out[0] = '\0';
+        return CJANG_GUARD_ERR_TOO_LONG;
+    }
+
+    return rc;
+}

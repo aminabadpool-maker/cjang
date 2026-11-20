@@ -49,4 +49,13 @@ cjang_guard_err_t cjang_guard_format_entry(
     size_t cap
 );
 
+cjang_guard_err_t cjang_guard_trace_kv(
+    const char *raw,
+    const char *key,
+    char *val_out,
+    size_t val_cap,
+    char *diag_out,
+    size_t diag_cap
+);
+
 #endif /* CJANG_GUARD_H */
