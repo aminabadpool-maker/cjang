@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 static char g_user_body[256];
+static char g_echo_body[CJANG_MAX_BODY_LEN + 128];
 
 static int log_middleware(const cjang_request_t *req) {
     printf("[middleware] %s %s\n", req->method, req->path);
@@ -39,6 +40,20 @@ static cjang_response_t user_detail_view(const cjang_request_t *req) {
     return res;
 }
 
+static cjang_response_t echo_post_view(const cjang_request_t *req) {
+    const char *ctype = cjang_header_get(req, "Content-Type");
+    snprintf(
+        g_echo_body,
+        sizeof(g_echo_body),
+        "Content-Type: %s\nBytes: %zu\nBody: %s\n",
+        ctype ? ctype : "none",
+        req->body_len,
+        req->body
+    );
+    cjang_response_t res = {200, "text/plain; charset=utf-8", g_echo_body};
+    return res;
+}
+
 int main(void) {
     static const cjang_middleware_fn middlewares[] = {
         log_middleware
@@ -47,7 +62,8 @@ int main(void) {
     static const cjang_route_t routes[] = {
         {"GET", "/", index_view},
         {"GET", "/health/", health_view},
-        {"GET", "/users/<id>/", user_detail_view}
+        {"GET", "/users/<id>/", user_detail_view},
+        {"POST", "/echo/", echo_post_view}
     };
 
     cjang_app_t app = {

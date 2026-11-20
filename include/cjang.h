@@ -11,6 +11,12 @@
 #define CJANG_QUERY_KEY_LEN 32
 #define CJANG_QUERY_VAL_LEN 128
 
+#define CJANG_MAX_HEADERS 24
+#define CJANG_HEADER_NAME_LEN 48
+#define CJANG_HEADER_VAL_LEN 192
+
+#define CJANG_MAX_BODY_LEN 2048
+
 typedef struct {
     char key[CJANG_PARAM_KEY_LEN];
     char value[CJANG_PARAM_VAL_LEN];
@@ -22,12 +28,21 @@ typedef struct {
 } cjang_query_param_t;
 
 typedef struct {
+    char name[CJANG_HEADER_NAME_LEN];
+    char value[CJANG_HEADER_VAL_LEN];
+} cjang_header_t;
+
+typedef struct {
     const char *method;
     const char *path;
     cjang_param_t params[CJANG_MAX_PARAMS];
     size_t param_count;
     cjang_query_param_t query[CJANG_MAX_QUERY_PARAMS];
     size_t query_count;
+    cjang_header_t headers[CJANG_MAX_HEADERS];
+    size_t header_count;
+    char body[CJANG_MAX_BODY_LEN];
+    size_t body_len;
 } cjang_request_t;
 
 typedef struct {
@@ -55,6 +70,7 @@ typedef struct {
 
 const char *cjang_param_get(const cjang_request_t *req, const char *key);
 const char *cjang_query_get(const cjang_request_t *req, const char *key);
+const char *cjang_header_get(const cjang_request_t *req, const char *name);
 void cjang_parse_query(cjang_request_t *req, const char *raw_query);
 cjang_response_t cjang_dispatch(const cjang_app_t *app, cjang_request_t *req);
 int cjang_serve(const cjang_app_t *app, const char *host, int port);

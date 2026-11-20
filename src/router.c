@@ -1,6 +1,17 @@
 #include "cjang.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+
+static int iequals(const char *a, const char *b) {
+    if (!a || !b) return 0;
+    while (*a && *b) {
+        unsigned char ca = (unsigned char)*a++;
+        unsigned char cb = (unsigned char)*b++;
+        if (tolower(ca) != tolower(cb)) return 0;
+    }
+    return *a == '\0' && *b == '\0';
+}
 
 const char *cjang_param_get(const cjang_request_t *req, const char *key) {
     if (!req || !key) return NULL;
@@ -17,6 +28,16 @@ const char *cjang_query_get(const cjang_request_t *req, const char *key) {
     for (size_t i = 0; i < req->query_count; ++i) {
         if (strcmp(req->query[i].key, key) == 0) {
             return req->query[i].value;
+        }
+    }
+    return NULL;
+}
+
+const char *cjang_header_get(const cjang_request_t *req, const char *name) {
+    if (!req || !name) return NULL;
+    for (size_t i = 0; i < req->header_count; ++i) {
+        if (iequals(req->headers[i].name, name)) {
+            return req->headers[i].value;
         }
     }
     return NULL;
