@@ -22,31 +22,32 @@ static int extract_kv_token(const char *buf, size_t len, const char *key, char *
         return -1;
     }
     size_t klen = strlen(key);
-    if (klen == 0 || len < klen) {
-        return -1;
-    }
-
     size_t i = 0;
-    while (i + klen <= len) {
+    while (i + klen < len) {
         if (memcmp(buf + i, key, klen) == 0) {
-            size_t p = i + klen;
-            while (p < len && (buf[p] == ' ' || buf[p] == '\t' || buf[p] == '"')) {
-                p++;
+            size_t sep = i + klen;
+            if (sep < len && buf[sep] == '"') {
+                sep++;
             }
-            if (p < len && (buf[p] == '=' || buf[p] == ':')) {
-                size_t vstart = p + 1;
-                while (vstart < len && (buf[vstart] == ' ' || buf[vstart] == '\t' || buf[vstart] == '"')) {
-                    vstart++;
-                }
-                size_t vend = vstart;
-                while (vend < len && buf[vend] != '"' && buf[vend] != ',' &&
-                       buf[vend] != '&' && buf[vend] != ';' && buf[vend] != '\n' &&
-                       buf[vend] != '\r' && buf[vend] != '}') {
-                    vend++;
-                }
-                copy_bounded_str(out, out_cap, buf + vstart, vend - vstart);
-                return 0;
+            while (sep < len && (buf[sep] == ' ' || buf[sep] == '\t')) {
+                sep++;
             }
+            if (sep >= len || (buf[sep] != '=' && buf[sep] != ':')) {
+                i++;
+                continue;
+            }
+            size_t vstart = sep + 1;
+            if (vstart < len && buf[vstart] == '"') {
+                vstart++;
+            }
+            size_t vend = vstart;
+            while (vend < len && buf[vend] != '"' && buf[vend] != ',' &&
+                   buf[vend] != '&' && buf[vend] != ';' && buf[vend] != '\n' &&
+                   buf[vend] != '\r' && buf[vend] != '}') {
+                vend++;
+            }
+            copy_bounded_str(out, out_cap, buf + vstart, vend - vstart);
+            return 0;
         }
         i++;
     }
