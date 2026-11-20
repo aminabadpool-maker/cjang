@@ -11,9 +11,11 @@
 
 #define RECV_BUF_SIZE 4096
 
-static void parse_first_line(const char *buf, char *method, size_t m_sz, char *path, size_t p_sz) {
+static void parse_first_line(const char *buf, char *method, size_t m_sz,
+                             char *path, size_t p_sz, char *query, size_t q_sz) {
     method[0] = '\0';
     path[0] = '\0';
+    if (query && q_sz > 0) query[0] = '\0';
 
     const char *sp1 = strchr(buf, ' ');
     if (!sp1) return;
@@ -31,7 +33,15 @@ static void parse_first_line(const char *buf, char *method, size_t m_sz, char *p
     path[p_len] = '\0';
 
     char *q = strchr(path, '?');
-    if (q) *q = '\0';
+    if (q) {
+        *q = '\0';
+        if (query && q_sz > 0) {
+            size_t q_len = strlen(q + 1);
+            if (q_len >= q_sz) q_len = q_sz - 1;
+            memcpy(query, q + 1, q_len);
+            query[q_len] = '\0';
+        }
+    }
 }
 
 int cjang_serve(const cjang_app_t *app, const char *host, int port) {
@@ -82,12 +92,16 @@ int cjang_serve(const cjang_app_t *app, const char *host, int port) {
             buf[n] = '\0';
             char method[16];
             char path[256];
-            parse_first_line(buf, method, sizeof(method), path, sizeof(path));
+            char raw_query[512];
+            parse_first_line(buf, method, sizeof(method), path, sizeof(path),
+                             raw_query, sizeof(raw_query));
 
             cjang_request_t req;
             memset(&req, 0, sizeof(req));
             req.method = method;
             req.path = path;
+            cjang_parse_query(&req, raw_query);
+
             cjang_response_t res = cjang_dispatch(app, &req);
 
             char header[512];

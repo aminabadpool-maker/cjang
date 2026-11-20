@@ -27,7 +27,14 @@ static cjang_response_t user_detail_view(const cjang_request_t *req) {
         cjang_response_t bad = {400, "text/plain; charset=utf-8", "Missing id param\n"};
         return bad;
     }
-    snprintf(g_user_body, sizeof(g_user_body), "User ID: %s\n", id);
+
+    const char *page = cjang_query_get(req, "page");
+    if (page) {
+        snprintf(g_user_body, sizeof(g_user_body), "User ID: %s (page=%s)\n", id, page);
+    } else {
+        snprintf(g_user_body, sizeof(g_user_body), "User ID: %s\n", id);
+    }
+
     cjang_response_t res = {200, "text/plain; charset=utf-8", g_user_body};
     return res;
 }

@@ -12,6 +12,47 @@ const char *cjang_param_get(const cjang_request_t *req, const char *key) {
     return NULL;
 }
 
+const char *cjang_query_get(const cjang_request_t *req, const char *key) {
+    if (!req || !key) return NULL;
+    for (size_t i = 0; i < req->query_count; ++i) {
+        if (strcmp(req->query[i].key, key) == 0) {
+            return req->query[i].value;
+        }
+    }
+    return NULL;
+}
+
+void cjang_parse_query(cjang_request_t *req, const char *raw_query) {
+    if (!req) return;
+    req->query_count = 0;
+    if (!raw_query || *raw_query == '\0') return;
+
+    const char *p = raw_query;
+    while (*p && req->query_count < CJANG_MAX_QUERY_PARAMS) {
+        const char *amp = strchr(p, '&');
+        size_t pair_len = amp ? (size_t)(amp - p) : strlen(p);
+
+        if (pair_len > 0) {
+            const char *eq = memchr(p, '=', pair_len);
+            size_t k_len = eq ? (size_t)(eq - p) : pair_len;
+            size_t v_len = eq ? (pair_len - k_len - 1) : 0;
+            const char *v_ptr = eq ? (eq + 1) : "";
+
+            if (k_len > 0 && k_len < CJANG_QUERY_KEY_LEN && v_len < CJANG_QUERY_VAL_LEN) {
+                cjang_query_param_t *qp = &req->query[req->query_count];
+                memcpy(qp->key, p, k_len);
+                qp->key[k_len] = '\0';
+                memcpy(qp->value, v_ptr, v_len);
+                qp->value[v_len] = '\0';
+                req->query_count++;
+            }
+        }
+
+        if (!amp) break;
+        p = amp + 1;
+    }
+}
+
 static int store_param(cjang_request_t *req, const char *name, size_t name_len,
                        const char *val, size_t val_len) {
     if (req->param_count >= CJANG_MAX_PARAMS) return 0;
