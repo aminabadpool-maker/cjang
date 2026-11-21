@@ -1,0 +1,370 @@
+CC ?= cc
+CFLAGS ?= -O3 -Wall -Wextra -std=c11 -Iinclude
+
+EXCLUDED := src/main.c src/cjang_bridge_cli.c
+LIB_SRCS := $(filter-out $(EXCLUDED),$(wildcard src/*.c))
+LIB_OBJS := $(LIB_SRCS:src/%.c=build/%.o)
+LIB_A := build/libcj.a
+
+.PHONY: all test clean
+
+all: $(LIB_A) build/cjangd build/cjang_bridge_cli
+
+build/%.o: src/%.c
+	@mkdir -p build
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(LIB_A): $(LIB_OBJS)
+	@mkdir -p build
+	ar rcs $@ $^
+
+build/cjangd: $(LIB_A) build/main.o
+	$(CC) $(CFLAGS) -o $@ build/main.o $(LIB_A)
+
+build/cjang_bridge_cli: $(LIB_A) build/cjang_bridge_cli.o
+	$(CC) $(CFLAGS) -o $@ build/cjang_bridge_cli.o $(LIB_A)
+
+build/test_ringbuf_v1: $(LIB_A) tests/test_ringbuf_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_ringbuf_v1.c $(LIB_A)
+
+build/test_log_v1: $(LIB_A) tests/test_log_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_log_v1.c $(LIB_A)
+
+build/test_static_v1: $(LIB_A) tests/test_static_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_static_v1.c $(LIB_A)
+
+build/test_kv_v1: $(LIB_A) tests/test_kv_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_kv_v1.c $(LIB_A)
+
+build/test_http_static_v1: $(LIB_A) tests/test_http_static_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_static_v1.c $(LIB_A)
+
+build/test_http_req_v1: $(LIB_A) tests/test_http_req_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_req_v1.c $(LIB_A)
+
+build/test_http_dispatch_v1: $(LIB_A) tests/test_http_dispatch_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_dispatch_v1.c $(LIB_A)
+
+build/test_http_hdr_v1: $(LIB_A) tests/test_http_hdr_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_hdr_v1.c $(LIB_A)
+
+build/test_portal_page_v1: $(LIB_A) tests/test_portal_page_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_page_v1.c $(LIB_A)
+
+build/test_url_decode_v1: $(LIB_A) tests/test_url_decode_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_url_decode_v1.c $(LIB_A)
+
+build/test_http_resp_v1: $(LIB_A) tests/test_http_resp_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_resp_v1.c $(LIB_A)
+
+build/test_http_query_v1: $(LIB_A) tests/test_http_query_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_query_v1.c $(LIB_A)
+
+build/test_portal_resp_v1: $(LIB_A) tests/test_portal_resp_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_resp_v1.c $(LIB_A)
+
+build/test_http_json_v1: $(LIB_A) tests/test_http_json_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_json_v1.c $(LIB_A)
+
+build/test_portal_route_v1: $(LIB_A) tests/test_portal_route_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_route_v1.c $(LIB_A)
+
+build/test_http_body_v1: $(LIB_A) tests/test_http_body_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_body_v1.c $(LIB_A)
+
+build/test_portal_dyn_v1: $(LIB_A) tests/test_portal_dyn_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_dyn_v1.c $(LIB_A)
+
+build/test_http_status_v1: $(LIB_A) tests/test_http_status_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_status_v1.c $(LIB_A)
+
+build/test_portal_router_v2: $(LIB_A) tests/test_portal_router_v2.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v2.c $(LIB_A)
+
+build/test_http_cookie_v1: $(LIB_A) tests/test_http_cookie_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_http_cookie_v1.c $(LIB_A)
+
+build/test_portal_session_v1: $(LIB_A) tests/test_portal_session_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_session_v1.c $(LIB_A)
+
+build/test_portal_auth_v1: $(LIB_A) tests/test_portal_auth_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_auth_v1.c $(LIB_A)
+
+build/test_portal_router_v3: $(LIB_A) tests/test_portal_router_v3.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v3.c $(LIB_A)
+
+build/test_portal_logout_v1: $(LIB_A) tests/test_portal_logout_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_logout_v1.c $(LIB_A)
+
+build/test_portal_router_v4: $(LIB_A) tests/test_portal_router_v4.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v4.c $(LIB_A)
+
+build/test_portal_login_v1: $(LIB_A) tests/test_portal_login_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_login_v1.c $(LIB_A)
+
+build/test_portal_router_v5: $(LIB_A) tests/test_portal_router_v5.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v5.c $(LIB_A)
+
+build/test_portal_dashboard_v1: $(LIB_A) tests/test_portal_dashboard_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_dashboard_v1.c $(LIB_A)
+
+build/test_portal_router_v6: $(LIB_A) tests/test_portal_router_v6.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v6.c $(LIB_A)
+
+build/test_portal_stats_v1: $(LIB_A) tests/test_portal_stats_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_stats_v1.c $(LIB_A)
+
+build/test_portal_router_v7: $(LIB_A) tests/test_portal_router_v7.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v7.c $(LIB_A)
+
+build/test_portal_echo_v1: $(LIB_A) tests/test_portal_echo_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_echo_v1.c $(LIB_A)
+
+build/test_portal_router_v8: $(LIB_A) tests/test_portal_router_v8.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v8.c $(LIB_A)
+
+build/test_portal_health_v1: $(LIB_A) tests/test_portal_health_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_health_v1.c $(LIB_A)
+
+build/test_portal_router_v9: $(LIB_A) tests/test_portal_router_v9.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v9.c $(LIB_A)
+
+build/test_portal_note_store_v1: $(LIB_A) tests/test_portal_note_store_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_store_v1.c $(LIB_A)
+
+build/test_portal_router_v10: $(LIB_A) tests/test_portal_router_v10.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v10.c $(LIB_A)
+
+build/test_portal_note_persist_v1: $(LIB_A) tests/test_portal_note_persist_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_persist_v1.c $(LIB_A)
+
+build/test_portal_router_v11: $(LIB_A) tests/test_portal_router_v11.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v11.c $(LIB_A)
+
+build/test_portal_note_hist_v1: $(LIB_A) tests/test_portal_note_hist_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_v1.c $(LIB_A)
+
+build/test_portal_router_v12: $(LIB_A) tests/test_portal_router_v12.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v12.c $(LIB_A)
+
+build/test_portal_note_hist_clear_v1: $(LIB_A) tests/test_portal_note_hist_clear_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_clear_v1.c $(LIB_A)
+
+build/test_portal_router_v13: $(LIB_A) tests/test_portal_router_v13.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v13.c $(LIB_A)
+
+build/test_portal_note_hist_persist_v1: $(LIB_A) tests/test_portal_note_hist_persist_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_persist_v1.c $(LIB_A)
+
+build/test_portal_router_v14: $(LIB_A) tests/test_portal_router_v14.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v14.c $(LIB_A)
+
+build/test_portal_note_hist_search_v1: $(LIB_A) tests/test_portal_note_hist_search_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_search_v1.c $(LIB_A)
+
+build/test_portal_router_v15: $(LIB_A) tests/test_portal_router_v15.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v15.c $(LIB_A)
+
+build/test_portal_note_hist_prefix_v1: $(LIB_A) tests/test_portal_note_hist_prefix_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_prefix_v1.c $(LIB_A)
+
+build/test_portal_router_v16: $(LIB_A) tests/test_portal_router_v16.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v16.c $(LIB_A)
+
+build/test_portal_note_hist_suffix_v1: $(LIB_A) tests/test_portal_note_hist_suffix_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_suffix_v1.c $(LIB_A)
+
+build/test_portal_router_v17: $(LIB_A) tests/test_portal_router_v17.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v17.c $(LIB_A)
+
+build/test_portal_note_hist_delete_v1: $(LIB_A) tests/test_portal_note_hist_delete_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_delete_v1.c $(LIB_A)
+
+build/test_portal_router_v18: $(LIB_A) tests/test_portal_router_v18.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v18.c $(LIB_A)
+
+build/test_portal_note_hist_update_v1: $(LIB_A) tests/test_portal_note_hist_update_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_update_v1.c $(LIB_A)
+
+build/test_portal_router_v19: $(LIB_A) tests/test_portal_router_v19.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v19.c $(LIB_A)
+
+build/test_portal_note_hist_item_v1: $(LIB_A) tests/test_portal_note_hist_item_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_item_v1.c $(LIB_A)
+
+build/test_portal_router_v20: $(LIB_A) tests/test_portal_router_v20.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v20.c $(LIB_A)
+
+build/test_portal_note_hist_count_v1: $(LIB_A) tests/test_portal_note_hist_count_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_count_v1.c $(LIB_A)
+
+build/test_portal_router_v21: $(LIB_A) tests/test_portal_router_v21.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v21.c $(LIB_A)
+
+build/test_portal_note_hist_export_v1: $(LIB_A) tests/test_portal_note_hist_export_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_export_v1.c $(LIB_A)
+
+build/test_portal_router_v22: $(LIB_A) tests/test_portal_router_v22.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v22.c $(LIB_A)
+
+build/test_portal_note_hist_import_v1: $(LIB_A) tests/test_portal_note_hist_import_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_import_v1.c $(LIB_A)
+
+build/test_portal_router_v23: $(LIB_A) tests/test_portal_router_v23.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v23.c $(LIB_A)
+
+build/test_portal_note_hist_reverse_v1: $(LIB_A) tests/test_portal_note_hist_reverse_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_reverse_v1.c $(LIB_A)
+
+build/test_portal_router_v24: $(LIB_A) tests/test_portal_router_v24.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v24.c $(LIB_A)
+
+build/test_portal_note_hist_page_v1: $(LIB_A) tests/test_portal_note_hist_page_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_page_v1.c $(LIB_A)
+
+build/test_portal_router_v25: $(LIB_A) tests/test_portal_router_v25.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v25.c $(LIB_A)
+
+build/test_portal_note_hist_bounds_v1: $(LIB_A) tests/test_portal_note_hist_bounds_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_bounds_v1.c $(LIB_A)
+
+build/test_portal_router_v26: $(LIB_A) tests/test_portal_router_v26.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v26.c $(LIB_A)
+
+build/test_portal_note_hist_dup_v1: $(LIB_A) tests/test_portal_note_hist_dup_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_dup_v1.c $(LIB_A)
+
+build/test_portal_router_v27: $(LIB_A) tests/test_portal_router_v27.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v27.c $(LIB_A)
+
+build/test_portal_note_hist_dedup_v1: $(LIB_A) tests/test_portal_note_hist_dedup_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_dedup_v1.c $(LIB_A)
+
+build/test_portal_router_v28: $(LIB_A) tests/test_portal_router_v28.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v28.c $(LIB_A)
+
+build/test_portal_note_hist_trim_v1: $(LIB_A) tests/test_portal_note_hist_trim_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_trim_v1.c $(LIB_A)
+
+build/test_portal_router_v29: $(LIB_A) tests/test_portal_router_v29.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v29.c $(LIB_A)
+
+build/test_portal_note_hist_swap_v1: $(LIB_A) tests/test_portal_note_hist_swap_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_swap_v1.c $(LIB_A)
+
+build/test_portal_router_v30: $(LIB_A) tests/test_portal_router_v30.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v30.c $(LIB_A)
+
+build/test_portal_note_hist_move_v1: $(LIB_A) tests/test_portal_note_hist_move_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_move_v1.c $(LIB_A)
+
+build/test_portal_router_v31: $(LIB_A) tests/test_portal_router_v31.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v31.c $(LIB_A)
+
+build/test_portal_note_hist_pop_v1: $(LIB_A) tests/test_portal_note_hist_pop_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_pop_v1.c $(LIB_A)
+
+build/test_portal_router_v32: $(LIB_A) tests/test_portal_router_v32.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v32.c $(LIB_A)
+
+build/test_portal_note_hist_shift_v1: $(LIB_A) tests/test_portal_note_hist_shift_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_shift_v1.c $(LIB_A)
+
+build/test_portal_router_v33: $(LIB_A) tests/test_portal_router_v33.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v33.c $(LIB_A)
+
+build/test_portal_note_hist_prepend_v1: $(LIB_A) tests/test_portal_note_hist_prepend_v1.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_note_hist_prepend_v1.c $(LIB_A)
+
+build/test_portal_router_v34: $(LIB_A) tests/test_portal_router_v34.c
+	$(CC) $(CFLAGS) -o $@ tests/test_portal_router_v34.c $(LIB_A)
+
+test: build/test_ringbuf_v1 build/test_log_v1 build/test_static_v1 build/test_kv_v1 build/test_http_static_v1 build/test_http_req_v1 build/test_http_dispatch_v1 build/test_http_hdr_v1 build/test_portal_page_v1 build/test_url_decode_v1 build/test_http_resp_v1 build/test_http_query_v1 build/test_portal_resp_v1 build/test_http_json_v1 build/test_portal_route_v1 build/test_http_body_v1 build/test_portal_dyn_v1 build/test_http_status_v1 build/test_portal_router_v2 build/test_http_cookie_v1 build/test_portal_session_v1 build/test_portal_auth_v1 build/test_portal_router_v3 build/test_portal_logout_v1 build/test_portal_router_v4 build/test_portal_login_v1 build/test_portal_router_v5 build/test_portal_dashboard_v1 build/test_portal_router_v6 build/test_portal_stats_v1 build/test_portal_router_v7 build/test_portal_echo_v1 build/test_portal_router_v8 build/test_portal_health_v1 build/test_portal_router_v9 build/test_portal_note_store_v1 build/test_portal_router_v10 build/test_portal_note_persist_v1 build/test_portal_router_v11 build/test_portal_note_hist_v1 build/test_portal_router_v12 build/test_portal_note_hist_clear_v1 build/test_portal_router_v13 build/test_portal_note_hist_persist_v1 build/test_portal_router_v14 build/test_portal_note_hist_search_v1 build/test_portal_router_v15 build/test_portal_note_hist_prefix_v1 build/test_portal_router_v16 build/test_portal_note_hist_suffix_v1 build/test_portal_router_v17 build/test_portal_note_hist_delete_v1 build/test_portal_router_v18 build/test_portal_note_hist_update_v1 build/test_portal_router_v19 build/test_portal_note_hist_item_v1 build/test_portal_router_v20 build/test_portal_note_hist_count_v1 build/test_portal_router_v21 build/test_portal_note_hist_export_v1 build/test_portal_router_v22 build/test_portal_note_hist_import_v1 build/test_portal_router_v23 build/test_portal_note_hist_reverse_v1 build/test_portal_router_v24 build/test_portal_note_hist_page_v1 build/test_portal_router_v25 build/test_portal_note_hist_bounds_v1 build/test_portal_router_v26 build/test_portal_note_hist_dup_v1 build/test_portal_router_v27 build/test_portal_note_hist_dedup_v1 build/test_portal_router_v28 build/test_portal_note_hist_trim_v1 build/test_portal_router_v29 build/test_portal_note_hist_swap_v1 build/test_portal_router_v30 build/test_portal_note_hist_move_v1 build/test_portal_router_v31 build/test_portal_note_hist_pop_v1 build/test_portal_router_v32 build/test_portal_note_hist_shift_v1 build/test_portal_router_v33 build/test_portal_note_hist_prepend_v1 build/test_portal_router_v34
+	./build/test_ringbuf_v1
+	./build/test_log_v1
+	./build/test_static_v1
+	./build/test_kv_v1
+	./build/test_http_static_v1
+	./build/test_http_req_v1
+	./build/test_http_dispatch_v1
+	./build/test_http_hdr_v1
+	./build/test_portal_page_v1
+	./build/test_url_decode_v1
+	./build/test_http_resp_v1
+	./build/test_http_query_v1
+	./build/test_portal_resp_v1
+	./build/test_http_json_v1
+	./build/test_portal_route_v1
+	./build/test_http_body_v1
+	./build/test_portal_dyn_v1
+	./build/test_http_status_v1
+	./build/test_portal_router_v2
+	./build/test_http_cookie_v1
+	./build/test_portal_session_v1
+	./build/test_portal_auth_v1
+	./build/test_portal_router_v3
+	./build/test_portal_logout_v1
+	./build/test_portal_router_v4
+	./build/test_portal_login_v1
+	./build/test_portal_router_v5
+	./build/test_portal_dashboard_v1
+	./build/test_portal_router_v6
+	./build/test_portal_stats_v1
+	./build/test_portal_router_v7
+	./build/test_portal_echo_v1
+	./build/test_portal_router_v8
+	./build/test_portal_health_v1
+	./build/test_portal_router_v9
+	./build/test_portal_note_store_v1
+	./build/test_portal_router_v10
+	./build/test_portal_note_persist_v1
+	./build/test_portal_router_v11
+	./build/test_portal_note_hist_v1
+	./build/test_portal_router_v12
+	./build/test_portal_note_hist_clear_v1
+	./build/test_portal_router_v13
+	./build/test_portal_note_hist_persist_v1
+	./build/test_portal_router_v14
+	./build/test_portal_note_hist_search_v1
+	./build/test_portal_router_v15
+	./build/test_portal_note_hist_prefix_v1
+	./build/test_portal_router_v16
+	./build/test_portal_note_hist_suffix_v1
+	./build/test_portal_router_v17
+	./build/test_portal_note_hist_delete_v1
+	./build/test_portal_router_v18
+	./build/test_portal_note_hist_update_v1
+	./build/test_portal_router_v19
+	./build/test_portal_note_hist_item_v1
+	./build/test_portal_router_v20
+	./build/test_portal_note_hist_count_v1
+	./build/test_portal_router_v21
+	./build/test_portal_note_hist_export_v1
+	./build/test_portal_router_v22
+	./build/test_portal_note_hist_import_v1
+	./build/test_portal_router_v23
+	./build/test_portal_note_hist_reverse_v1
+	./build/test_portal_router_v24
+	./build/test_portal_note_hist_page_v1
+	./build/test_portal_router_v25
+	./build/test_portal_note_hist_bounds_v1
+	./build/test_portal_router_v26
+	./build/test_portal_note_hist_dup_v1
+	./build/test_portal_router_v27
+	./build/test_portal_note_hist_dedup_v1
+	./build/test_portal_router_v28
+	./build/test_portal_note_hist_trim_v1
+	./build/test_portal_router_v29
+	./build/test_portal_note_hist_swap_v1
+	./build/test_portal_router_v30
+	./build/test_portal_note_hist_move_v1
+	./build/test_portal_router_v31
+	./build/test_portal_note_hist_pop_v1
+	./build/test_portal_router_v32
+	./build/test_portal_note_hist_shift_v1
+	./build/test_portal_router_v33
+	./build/test_portal_note_hist_prepend_v1
+	./build/test_portal_router_v34
+
+clean:
+	rm -rf build
